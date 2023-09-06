@@ -68,6 +68,7 @@ int32_t AS5600::check_turn(uint16_t angle){
 		turn_count --;
 	}
 	angle_old = angle;
+	return turn_count;
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //AB LINER HALL SENSOR(for robotmaster)////////////////////////////////////////////////////////////
@@ -96,7 +97,7 @@ void AB_LINER::calibrate_finish(void){
 }
 
 void AB_LINER::read_start(void){
-	turn_count = check_turn(get_e_sincos());
+	check_turn(get_e_sincos());
 }
 
 void AB_LINER::read_completion_task(void){
@@ -109,8 +110,7 @@ uint16_t AB_LINER::get_e_angle(void){
 }
 int32_t AB_LINER::get_e_angle_sum(void){
 	sincos_t sincos_data = get_e_sincos();
-	turn_count = check_turn(sincos_data);
-	return (float)turn_count*1024 + math.fast_atan2_angle(sincos_data.sin,sincos_data.cos);
+	return (float)check_turn(sincos_data)*1024 + math.fast_atan2_angle(sincos_data.sin,sincos_data.cos);
 }
 
 sincos_t AB_LINER::get_e_sincos(void){
@@ -122,7 +122,7 @@ sincos_t AB_LINER::get_e_sincos(void){
 
 //private function
 int32_t AB_LINER::check_turn(sincos_t sincos_data){
-	int enc_phase = 0;
+	uint32_t enc_phase = 0;
 	enc_phase |= (sincos_data.sin >= 0.0f) ? 0b01:0b00;
 	enc_phase |= (sincos_data.cos >= 0.0f) ? 0b10:0b00;
 
@@ -132,6 +132,7 @@ int32_t AB_LINER::check_turn(sincos_t sincos_data){
 		turn_count ++;
 	}
 	enc_phase_log = enc_phase;
+	return turn_count;
 }
 
 

@@ -69,15 +69,13 @@ public:
 		 pid_d(TIM7_FRQ),pid_q(TIM7_FRQ),
 		 pid_speed(TIM7_FRQ),speed_filter(10){
 	}
-	void init(uint32_t _motor_pole);
+	void init(uint32_t _motor_pole,float R,float L);
 
 	void print_debug(void);
 	void control(void);
 
 	//measure motor parameter
-	void enc_calibration(float duty);
-	float measure_R(float duty);
-	float measure_L(float R,float duty);
+	void enc_calibration(float duty,uint32_t motor_pole);
 	float measure_speed_rad(float freq);
 
 	//inline functions

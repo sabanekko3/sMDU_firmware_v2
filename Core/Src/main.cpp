@@ -30,6 +30,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../user_lib/motor.hpp"
+#include "../user_lib/motor_measure.hpp"
 #include "../user_lib/can.hpp"
 /* USER CODE END Includes */
 
@@ -62,7 +63,7 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 extern "C" {
 	int _write(int file, char *ptr, int len) {
-		HAL_UART_Transmit_IT(&huart1, (uint8_t*) ptr, len);
+		HAL_UART_Transmit(&huart1, (uint8_t*) ptr, len,100);
 		return len;
 	}
 }
@@ -91,17 +92,18 @@ std::array<ENCODER*,(int)ENC_type::n> enc_array = {
 		&ab_liner_enc,
 };
 
+MOTOR_measure measure(&htim17,driver,analog);
 MOTOR motor(driver,analog,enc_array);
 
 CAN_COM can(&hcan,CAN_FILTER_FIFO0);
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim == &htim7){
-#ifdef TIM7_INT
+		R.out(0.5);
 		motor.control();
-#endif
 	}else if(htim == &htim6){
-		enc_array[(int)motor.get_enc_type()]->read_start();
+		B.out(0.5);
+		enc_array[(int)ENC_type::AB_LINER]->read_start();
 	}
 }
 
@@ -159,16 +161,29 @@ int main(void)
   R.start();
   G.start();
   B.start();
-
   G.out(0.5);
+  printf("LED OK\r\n");
 
+  //motor peripherals start
+  driver.pwms_start();
+  analog.init();
+  analog.dma_start();
 
   motor.set_enc_type(ENC_type::AB_LINER);
-  motor.init(7);
-  HAL_TIM_Base_Start_IT(&htim6);
-  HAL_TIM_Base_Start_IT(&htim7);
-  G.out(0);
-  R.out(0.5);
+  motor.enc_calibration(0.1,7);
+  float motor_R = measure.measure_R(0.5);
+  float motor_L = measure.measure_L(motor_R,0.5);
+  printf("R:%f,L:%f\r\n",motor_R,motor_L);
+  motor.init(7,motor_R,motor_L);
+  printf("motor init\r\n");
+
+  //enc timer
+   if(HAL_TIM_Base_Start_IT(&htim6) == HAL_OK) printf("enc timer start\r\n");
+   else printf("enc timer error\r\n");
+
+   //motor timer
+   if(HAL_TIM_Base_Start_IT(&htim7) == HAL_OK) printf("motor timer start\r\n");
+   else printf("motor timer error\r\n");
 
   HAL_CAN_Start(&hcan);
   HAL_CAN_ActivateNotification(&hcan, CAN_IT_RX_FIFO0_MSG_PENDING);
@@ -194,6 +209,7 @@ int main(void)
 	  }
 	  motor.set_dq_current(dq_target);
 	  motor.print_debug();
+
 	  HAL_Delay(1);
   }
   /* USER CODE END 3 */

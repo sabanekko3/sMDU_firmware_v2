@@ -81,8 +81,9 @@ public:
 		if(rad < 0) rad = 2*M_PI + rad;
 		return rad * RAD_TO_ANGLE;
 	}
+
 	template<typename T>
-	static T clamp(T data, T max, T min){
+	static T clamp(T data, T min, T max){
 		data = data > max ? max : data;
 		data = data < min ? min : data;
 		return data;
@@ -103,7 +104,7 @@ private:
 	float old_error = 0;
 
 	//output limit
-	float limit_min = FLT_MIN;
+	float limit_min = -FLT_MAX;
 	float limit_max = FLT_MAX;
 public:
 	PID(float _pid_freq):pid_freq(_pid_freq){}
