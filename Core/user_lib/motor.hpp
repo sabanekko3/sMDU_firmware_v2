@@ -56,20 +56,18 @@ private:
 	float motor_speed_rad;
 	//target
 	float motor_speed_target;
-	LPF<int> speed_filter;
 
 	//for measure speed
 	int32_t top = 0;
-	int32_t angle_log[8] = {0};
-	int32_t angle_diff = 0;
+	uint16_t angle_log[8] = {0};
 
 public:
 	MOTOR(DRIVER &_driver,ANALOG_SENS &_analog,std::array<ENCODER*,(int)ENC_type::n> &_enc)
 		:driver(_driver),analog(_analog),enc(_enc),
 		 pid_d(TIM7_FRQ),pid_q(TIM7_FRQ),
-		 pid_speed(TIM7_FRQ),speed_filter(10){
+		 pid_speed(TIM7_FRQ){
 	}
-	void init(uint32_t _motor_pole,float R,float L);
+	void init(uint32_t _motor_pole,float R,float L,float motor_kv);
 
 	void print_debug(void);
 	void control(void);
@@ -81,9 +79,6 @@ public:
 	//inline functions
 	void set_dq_current(dq_t target){
 		i_dq_target = target;
-	}
-	void set_kv(float kv){
-		motor_Ke = 60/(2*M_PI*kv);
 	}
 	void set_enc_type(ENC_type type){
 		enc_type = type;

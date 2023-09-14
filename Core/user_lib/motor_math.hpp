@@ -131,16 +131,15 @@ public:
 };
 
 //filters/////////////////////////////////////////////////////////////
-template<class T>
 class LPF{
 private:
-	T data = 0;
-	const T k = 0;
+	float data = 0;
+	const float k = 0;
 public:
 	//set gain 0~100
-	LPF(T _k):k(_k){}
-	T calc(T input){
-		data = input*k+(100-k)*data;
+	LPF(float _k):k(_k){}
+	float calc(float input){
+		data = input*k+(1.0f-k)*data;
 		return data;
 	}
 	void reset(void){

@@ -12,14 +12,14 @@
 #include "pwm.hpp"
 #include "motor_math.hpp"
 
-class DRIVER : motor_math{
+class DRIVER{
 private:
 	PWM& pwm_u;
 	PWM& pwm_v;
 	PWM& pwm_w;
 
 	GPIO_TypeDef *en_port;
-	uint16_t en_pin;
+	const uint16_t en_pin;
 
 	motor_math math;
 
