@@ -20,6 +20,8 @@
 
 #include "../inc/main.h"
 
+#define sMDU_V2
+
 #define TIM7_INT
 #define TIM7_FRQ 10000
 

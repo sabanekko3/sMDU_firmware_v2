@@ -29,9 +29,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "../user_lib/motor.hpp"
-#include "../user_lib/motor_measure.hpp"
-#include "../user_lib/can.hpp"
+#include ../user_lib/board_task.hpp
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,34 +66,7 @@ extern "C" {
 	}
 }
 
-//setup led
-PWM R(&htim2, TIM_CHANNEL_1, 1000,0,1,false);
-PWM G(&htim2, TIM_CHANNEL_2, 1000,0,1,false);
-PWM B(&htim2, TIM_CHANNEL_3, 1000,0,1,false);
 
-//setup pwm
-PWM U(&htim1, TIM_CHANNEL_3, 980,-1,1,true);
-PWM V(&htim1, TIM_CHANNEL_2, 980,-1,1,true);
-PWM W(&htim1, TIM_CHANNEL_1, 980,-1,1,true);
-
-DRIVER driver(U,V,W,MD_EN_GPIO_Port,MD_EN_Pin);
-
-ADC_DMA adc1_dma(&hadc1,(int)ADC_data::adc1_n);
-ADC_DMA adc2_dma(&hadc2,(int)ADC_data::adc2_n);
-ANALOG_SENS analog(adc1_dma,adc2_dma,3.3/(0.05*4096.0),11.0/4096.0*3.3);
-
-AS5600 as5600_enc(&hi2c1);
-AB_LINER ab_liner_enc(analog);
-
-std::array<ENCODER*,(int)ENC_type::n> enc_array = {
-		&as5600_enc,
-		&ab_liner_enc,
-};
-
-MOTOR_measure measure(&htim17,driver,analog);
-MOTOR motor(driver,analog,enc_array);
-
-CAN_COM can(&hcan,CAN_FILTER_FIFO0);
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	if(htim == &htim7){
@@ -203,9 +174,7 @@ int main(void)
   G.out(0.5);
 
   motor.set_enc_type(ENC_type::AB_LINER);
-  motor.enc_calibration(0.1,7);
-  float motor_R = measure.measure_R(0.5);
-  float motor_L = measure.measure_L(motor_R,0.5);
+
   printf("R:%f,L:%f\r\n",motor_R,motor_L);
   motor.init(7,motor_R,motor_L,1000);
   printf("motor init\r\n");
