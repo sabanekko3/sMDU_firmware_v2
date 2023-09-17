@@ -9,14 +9,17 @@
 #define USER_LIB_COM_UART_HPP_
 
 #include "../board_data.hpp"
-#include "communicate.hpp"
 
-#define CAN_RX_BUFF_N 16
-#define CAN_RX_BUFF_AND 0xF
+#define UART_RX_BUFF_N 16
+#define UART_RX_BUFF_AND 0xF
+
+#define COBS_DATA_SIZE 2
 
 class UartCom : Communication{
 private:
     UART_HandleTypeDef *uart;
+
+    rx_buff[UART_RX_BUFF_N][]
     
     void encode_COBS(const uint8_t *input, size_t input_size, uint8_t *output);
     void decode_COBS(const uint8_t *input, size_t input_size, uint8_t *output);

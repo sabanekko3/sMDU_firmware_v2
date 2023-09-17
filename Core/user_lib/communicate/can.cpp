@@ -8,7 +8,7 @@
 #include "can.hpp"
 
 //tx//////////////////////////////////////////////////////////////////////
-bool CanCom::tx(const data_frame_t &tx_data){
+bool CanCom::tx(can_frame_t &tx_data){
 	uint32_t mailbox_num;
 	if(!tx_available()){
 		return false;
@@ -37,34 +37,21 @@ bool CanCom::tx(const data_frame_t &tx_data){
 }
 
 //rx//////////////////////////////////////////////////////////////////////////////////////////
-uint32_t CanCom::rx_available(void){
-		uint32_t count = 0;
-		for(uint32_t i = 0; i < CAN_RX_BUFF_N;i++){
-			if(!rx_buff[i].is_free) count ++;
-		}
-		return count;
-	}
 void CanCom::rx_interrupt_task(void){
 	CAN_RxHeaderTypeDef rx_header;
 
 	HAL_CAN_GetRxMessage(can, rx_fifo, &rx_header, rx_buff[head].data);
-	rx_buff[head].is_remote = (rx_header.RTR == CAN_RTR_DATA)? false : true;
-	rx_buff[head].id = (rx_header.IDE == CAN_ID_STD)? rx_header.StdId : rx_header.ExtId;
-	rx_buff[head].is_ext_id = (rx_header.IDE == CAN_ID_STD)? false : true;
-	rx_buff[head].size = rx_header.DLC;
-	rx_buff[head].is_free = false;
-
-	head = (head+1)&CAN_RX_BUFF_AND;
-}
-bool CanCom::rx(data_frame_t &rx_frame){
-	if(!rx_buff[tail].is_free){
-		rx_frame = rx_buff[tail];
-		rx_buff[tail].is_free = true;
-		tail = (tail+1)&CAN_RX_BUFF_AND;
-		return true;
-	}else{
-		return false;
+	can_frame_t rx_data={
+		.is_remote = (rx_header.RTR == CAN_RTR_DATA)? false : true;
+		.id = (rx_header.IDE == CAN_ID_STD)? rx_header.StdId : rx_header.ExtId;
+		.is_ext_id = (rx_header.IDE == CAN_ID_STD)? false : true;
+		.size = rx_header.DLC;
 	}
+
+	rx_buff.push(rx_data);
+}
+bool CanCom::rx(can_frame_t &rx_frame){
+	return rx_buff.pop(rx_frame);
 }
 
 //filter///////////////////////////////////////////////////////////////////////////////////
@@ -115,7 +102,7 @@ void CanCom::set_filter_mask(uint32_t id,uint32_t mask,filter_mode mode,bool as_
 
 	HAL_CAN_ConfigFilter(can, &filter);
 }
-void CAN_COM::set_filter_free(void){
+void CanCom::set_filter_free(void){
 	CAN_FilterTypeDef filter;
 	filter.FilterIdHigh         = 0;
 	filter.FilterIdLow          = 0;

@@ -1,5 +1,24 @@
 #include "uart.hpp"
 
+void UartCom::tx(const data_frame_t &tx_data){
+
+}
+uint32_t UartCom::tx_available(void){
+
+}
+
+uint32_t UartCom::rx_available(void){
+
+}
+bool UartCom::rx(data_frame_t &rx_frame){
+
+}
+void UartCom::rx_interrupt_task(void){
+
+}
+
+
+//private funcitons////////////////////////////////////////////////////////////////////////////////
 void UartCom::encode_COBS(const uint8_t *input, size_t input_size, uint8_t *output) {
     int read_index = 0;
     int write_index = 1;
